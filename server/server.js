@@ -1,5 +1,6 @@
 let express = require("express");
 let bodyParser = require("body-parser");
+const { ObjectID } = require("mongodb");
 
 let { mongoose } = require("./db/mongoose.js");
 let { Todo } = require("./models/todo.js");
@@ -39,6 +40,34 @@ app.get("/todos", (req, res) => {
       });
     }
   );
+});
+
+app.get("/todos/:id", (req, res) => {
+  let id = req.params.id;
+
+  if (ObjectID.isValid(id)) {
+    Todo.findById(id).then(
+      todo => {
+        if (!todo) {
+          return res.status(400).send({
+            error: `todo with id ${id} not found`
+          });
+        }
+        res.send({
+          todo
+        });
+      },
+      err => {
+        res.status(400).send({
+          error: `Error trying to get todo with id ${id}`
+        });
+      }
+    );
+  } else {
+    res.status(400).send({
+      error: `invalid format for parameter id: ${id} `
+    });
+  }
 });
 
 app.listen(3000, () => {
