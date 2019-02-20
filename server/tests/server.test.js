@@ -3,11 +3,10 @@ const request = require("supertest");
 const { app } = require("../server");
 const { Todo } = require("../models/todo");
 const { ObjectID } = require("mongodb");
-const _ = require("lodash");
 
 const todos = [
   { _id: new ObjectID(), text: "React.js" },
-  { _id: new ObjectID(), text: "Angular" },
+  { _id: new ObjectID(), text: "Angular", completed: true, completedAt: 999 },
   { _id: new ObjectID(), text: "Node.js" }
 ];
 
@@ -147,6 +146,26 @@ describe("DELETE /todos/:id", () => {
     request(app)
       .delete(`/todos/${invalirId}`)
       .expect(400)
+      .end(done);
+  });
+});
+
+describe("PATCH /todos/:id", () => {
+  it("should update single todo", done => {
+    let id = todos[1]._id.toHexString();
+    let text = "new text";
+    request(app)
+      .patch(`/todos/${id}`)
+      .send({
+        completed: true,
+        text
+      })
+      .expect(200)
+      .expect(res => {
+        expect(res.body.todo.text).toBe(text);
+        expect(res.body.todo.completed).toBe(true);
+        expect(res.body.todo.completedAt).toBeA("number");
+      })
       .end(done);
   });
 });
