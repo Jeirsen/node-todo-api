@@ -3,6 +3,7 @@ const request = require("supertest");
 const { app } = require("../server");
 const { Todo } = require("../models/todo");
 const { ObjectID } = require("mongodb");
+const _ = require("lodash");
 
 const todos = [
   { _id: new ObjectID(), text: "React.js" },
