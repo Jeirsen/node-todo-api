@@ -7,6 +7,7 @@ let { Todo } = require("./models/todo.js");
 let { User } = require("./models/user.js");
 
 let app = express();
+const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
@@ -45,8 +46,13 @@ app.get("/todos", (req, res) => {
 app.get("/todos/:id", (req, res) => {
   let id = req.params.id;
 
-  if (ObjectID.isValid(id)) {
-    Todo.findById(id).then(
+  if (!ObjectID.isValid(id)) {
+    return res.status(400).send({
+      error: `invalid format for parameter id: ${id} `
+    });
+  }
+  Todo.findById(id)
+    .then(
       todo => {
         if (!todo) {
           return res.status(400).send({
@@ -62,16 +68,49 @@ app.get("/todos/:id", (req, res) => {
           error: `Error trying to get todo with id ${id}`
         });
       }
-    );
-  } else {
-    res.status(400).send({
+    )
+    .catch(e => {
+      res.status(400).send({
+        error: `Error trying to get todo with id ${id}`
+      });
+    });
+});
+
+app.delete("/todos/:id", (req, res) => {
+  let id = req.params.id;
+  if (!ObjectID.isValid(id)) {
+    return res.status(400).send({
       error: `invalid format for parameter id: ${id} `
     });
   }
+
+  Todo.findByIdAndRemove(id)
+    .then(
+      todo => {
+        if (!todo) {
+          return res.status(400).send({
+            error: `todo with id ${id} not found`
+          });
+        }
+        res.send({
+          todo
+        });
+      },
+      err => {
+        res.status(400).send({
+          error: `Error trying to delete todo with id ${id}`
+        });
+      }
+    )
+    .catch(e => {
+      res.status(400).send({
+        error: `Error trying to delete todo with id ${id}`
+      });
+    });
 });
 
-app.listen(3000, () => {
-  console.log("Server up on port 3000");
+app.listen(port, () => {
+  console.log(`Server up on port ${port}`);
 });
 
 module.exports = { app };
